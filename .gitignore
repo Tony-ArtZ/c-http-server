@@ -1,0 +1,32 @@
+# Compiled object files
+*.o
+
+# Executable files
+server
+a.out
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+*.swo
+
+# Core dumps
+core.*
+
+# Ignore build directories (if used)
+build/
+dist/
+
+# Ignore Makefile generated files
+Makefile~
+
+# System-specific files (MacOS, Linux)
+.DS_Store
+Thumbs.db
+
+# WSL specific temp files
+.cache/

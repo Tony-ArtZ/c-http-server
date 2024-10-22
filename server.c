@@ -1,4 +1,13 @@
 #include "server.h"
+#include <pthread.h>
+
+void *client_thread(void *arg) {
+  int client_fd = *((int *)arg);
+  free(arg); // Free the allocated memory for client_fd
+  handle_client(client_fd);
+  close(client_fd);
+  return NULL;
+}
 
 int create_server_socket() {
   struct addrinfo hints, *res, *p;
@@ -46,7 +55,7 @@ int create_server_socket() {
 }
 
 int main() {
-  int sock_fd, client_fd;
+  int sock_fd;
 
   if ((sock_fd = create_server_socket()) == -1) {
     return 1;
@@ -59,15 +68,22 @@ int main() {
     socklen_t addr_size = sizeof client_addr;
     char client_ip[INET6_ADDRSTRLEN];
 
-    if ((client_fd = accept(sock_fd, (struct sockaddr *)&client_addr,
-                            &addr_size)) == -1) {
+    int *client_fd = malloc(sizeof(int));
+    if ((*client_fd = accept(sock_fd, (struct sockaddr *)&client_addr,
+                             &addr_size)) == -1) {
       perror("accept");
+      free(client_fd);
       continue;
     }
 
-    handle_client(client_fd);
-
-    close(client_fd);
+    pthread_t thread_id;
+    if (pthread_create(&thread_id, NULL, client_thread, client_fd) != 0) {
+      perror("pthread_create");
+      close(*client_fd);
+      free(client_fd);
+    } else {
+      pthread_detach(thread_id);
+    }
   }
 
   close(sock_fd);
